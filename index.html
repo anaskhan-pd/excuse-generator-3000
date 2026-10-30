@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excuse Generator 3000 — my bad generator</title>
+  <meta name="description" content="A tiny, funny website that generates dangerously convincing or completely unhinged excuses.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="header">
+      <div class="brand-badge" id="brand-status">SYSTEM STATUS: MORALLY QUESTIONABLE</div>
+      <h1 class="title">Excuse Generator <span class="highlight">3000</span></h1>
+      <p class="tagline">"my bad generator."</p>
+      <p class="sub-tagline">Select a crisis. Pick a persona. Evade all earthly consequences.</p>
+    </header>
+
+    <main class="generator-card">
+      <!-- Situation Picker -->
+      <section class="section" aria-labelledby="situation-label">
+        <div class="section-header">
+          <label id="situation-label" class="section-title">1. What's the damage?</label>
+          <span class="section-hint">Pick your crime</span>
+        </div>
+        <div class="situation-grid" role="radiogroup" aria-labelledby="situation-label" id="situation-options">
+          <button type="button" class="chip active" data-situation="skipped-gym" role="radio" aria-checked="true">Skipped the gym</button>
+          <button type="button" class="chip" data-situation="didnt-study" role="radio" aria-checked="false">Didn't study</button>
+          <button type="button" class="chip" data-situation="missed-deadline" role="radio" aria-checked="false">Missed a deadline</button>
+          <button type="button" class="chip" data-situation="arrived-late" role="radio" aria-checked="false">Arrived late</button>
+          <button type="button" class="chip" data-situation="ignored-message" role="radio" aria-checked="false">Ignored a message</button>
+          <button type="button" class="chip" data-situation="cancelled-plans" role="radio" aria-checked="false">Cancelled plans</button>
+          <button type="button" class="chip" data-situation="forgot-something" role="radio" aria-checked="false">Forgot something</button>
+          <button type="button" class="chip" data-situation="custom" role="radio" aria-checked="false">Custom situation...</button>
+        </div>
+
+        <!-- Custom Situation Input (Hidden by default) -->
+        <div class="custom-input-wrap" id="custom-wrap" hidden>
+          <label for="custom-situation-input" class="visually-hidden">Custom situation description</label>
+          <input 
+            type="text" 
+            id="custom-situation-input" 
+            placeholder="e.g. Ate my roommate's label-marked sourdough starter"
+            maxlength="100"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <span class="char-counter" id="char-counter">0/100</span>
+        </div>
+      </section>
+
+      <!-- Personality Picker -->
+      <section class="section" aria-labelledby="personality-label">
+        <div class="section-header">
+          <label id="personality-label" class="section-title">2. Choose your defense counsel</label>
+          <span class="section-hint">Personality profile</span>
+        </div>
+        <div class="personality-grid" role="radiogroup" aria-labelledby="personality-label" id="personality-options">
+          <button type="button" class="persona-card active" data-personality="corporate" role="radio" aria-checked="true">
+            <span class="persona-tag">LIABILITY-FREE</span>
+            <span class="persona-name">Corporate</span>
+            <span class="persona-desc">HR has entered the chat.</span>
+          </button>
+          <button type="button" class="persona-card" data-personality="bollywood" role="radio" aria-checked="false">
+            <span class="persona-tag">DESTINY & TEARS</span>
+            <span class="persona-name">Bollywood</span>
+            <span class="persona-desc">Background music intensifies.</span>
+          </button>
+          <button type="button" class="persona-card" data-personality="unhinged" role="radio" aria-checked="false">
+            <span class="persona-tag">FERAL ENERGY</span>
+            <span class="persona-name">Unhinged</span>
+            <span class="persona-desc">Your lawyer has advised silence.</span>
+          </button>
+          <button type="button" class="persona-card" data-personality="scientific" role="radio" aria-checked="false">
+            <span class="persona-tag">PEER-REVIEWED</span>
+            <span class="persona-name">Scientific</span>
+            <span class="persona-desc">Peer review is unlikely.</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Controls -->
+      <div class="action-bar">
+        <button type="button" class="btn btn-primary" id="btn-generate">
+          <span class="btn-text">Generate Alibi</span>
+          <span class="btn-kbd">↵ Space/Enter</span>
+        </button>
+        <button type="button" class="btn btn-secondary" id="btn-random">
+          <span class="btn-icon">🎲</span> Surprise Me
+        </button>
+      </div>
+
+      <!-- Output Display Card -->
+      <section class="result-container" aria-live="polite">
+        <div class="result-header">
+          <div class="result-meta">
+            <span class="badge badge-persona" id="result-persona-badge">Corporate Alibi</span>
+            <span class="badge badge-situation" id="result-situation-badge">Skipped Gym</span>
+          </div>
+          <div class="credibility-gauge" id="credibility-box" title="Fictional believability estimation">
+            <div class="gauge-label">
+              <span class="gauge-title">FICTIONAL CREDIBILITY</span>
+              <span class="gauge-percent" id="credibility-score">74%</span>
+            </div>
+            <div class="gauge-track">
+              <div class="gauge-bar" id="credibility-bar" style="width: 74%;"></div>
+            </div>
+            <div class="gauge-verdict" id="credibility-verdict">Legally non-binding corporate jargon.</div>
+          </div>
+        </div>
+
+        <div class="result-body">
+          <blockquote class="excuse-quote" id="excuse-text">
+            "Due to an unforeseen bandwidth bottleneck and conflicting cross-functional deliverables, my physical wellness sprint has been deprioritized to Q3."
+          </blockquote>
+        </div>
+
+        <div class="result-footer">
+          <button type="button" class="btn btn-action" id="btn-copy">
+            <span id="copy-icon">📋</span>
+            <span id="copy-label">Copy Excuse</span>
+          </button>
+          <button type="button" class="btn btn-action" id="btn-share" title="Share this excuse">
+            <span id="share-icon">↗</span>
+            <span id="share-label">Share</span>
+          </button>
+          <button type="button" class="btn btn-worse" id="btn-worse" title="Escalate this premise into absurd consequences">
+            🔥 Make It Worse
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Excuse Generator 3000 &bull; 100% Client-side &bull; Zero accountability guaranteed.</p>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-hidden="true"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
