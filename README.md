@@ -5,7 +5,7 @@
 
 ---
 
-## ⚡ Tech Stack
+## Tech Stack
 
 - **HTML5** (semantic markup, accessible roles)
 - **CSS3** (custom properties, neo-brutalist dark aesthetic, reduced-motion support, fluid responsive grid)
@@ -15,7 +15,7 @@ No React, no frameworks, no npm dependencies, no backend, no external APIs, and 
 
 ---
 
-## 🚀 How to Run Locally
+## How to Run Locally
 
 You can run this project in two ways:
 
@@ -36,7 +36,7 @@ Then navigate to [http://localhost:8000](http://localhost:8000) in your browser.
 
 ---
 
-## 🎯 Features
+## Features
 
 1. **8 Situations**:
    - *Skipped the gym*
