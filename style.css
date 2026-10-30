@@ -472,6 +472,24 @@ body {
   letter-spacing: 0.05em;
 }
 
+.gauge-score-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.credibility-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent-secondary) 74%, rgba(255, 51, 102, 0.2) 0);
+  border: 1px solid rgba(255, 51, 102, 0.4);
+  box-sizing: border-box;
+  flex-shrink: 0;
+  transition: background 300ms ease;
+}
+
 .gauge-percent {
   color: var(--accent-primary);
   font-size: 0.82rem;

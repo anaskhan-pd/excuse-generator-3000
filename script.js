@@ -680,11 +680,11 @@
   const resultPersonaBadge = document.getElementById('result-persona-badge');
   const resultSituationBadge = document.getElementById('result-situation-badge');
   const credibilityScoreEl = document.getElementById('credibility-score');
+  const credibilityDotEl = document.getElementById('credibility-dot');
   const credibilityBarEl = document.getElementById('credibility-bar');
   const credibilityVerdictEl = document.getElementById('credibility-verdict');
   const excuseTextEl = document.getElementById('excuse-text');
   const copyLabel = document.getElementById('copy-label');
-  const copyIcon = document.getElementById('copy-icon');
   const toast = document.getElementById('toast');
 
   // --- Helper: Toast Notification ---
@@ -867,7 +867,7 @@
     };
 
     resultPersonaBadge.textContent = isWorse 
-      ? `🔥 ESCALATED (${personaNames[state.currentPersonality]})`
+      ? `ESCALATED (${personaNames[state.currentPersonality].toUpperCase()})`
       : personaNames[state.currentPersonality];
 
     resultSituationBadge.textContent = situationNames[state.currentSituation] || "Misfortune";
@@ -878,9 +878,12 @@
     void excuseTextEl.offsetWidth; // Trigger reflow
     excuseTextEl.classList.add('updating');
 
-    // Credibility Score & Bar
+    // Credibility Score & Bar & Dot
     credibilityScoreEl.textContent = `${score}%`;
     credibilityBarEl.style.width = `${score}%`;
+    if (credibilityDotEl) {
+      credibilityDotEl.style.background = `conic-gradient(var(--accent-secondary) ${score}%, rgba(255, 51, 102, 0.2) 0)`;
+    }
 
     if (score < 25) {
       credibilityBarEl.style.backgroundColor = 'var(--accent-secondary)';
@@ -941,7 +944,6 @@
     if (success) {
       btnCopy.classList.add('copied');
       copyLabel.textContent = "COPIED";
-      copyIcon.textContent = "✓";
 
       const randomMsg = COPY_FEEDBACK_MESSAGES[Math.floor(Math.random() * COPY_FEEDBACK_MESSAGES.length)];
       showToast(randomMsg);
@@ -955,7 +957,6 @@
   function resetCopyButton() {
     btnCopy.classList.remove('copied');
     copyLabel.textContent = "Copy Excuse";
-    copyIcon.textContent = "📋";
   }
 
   // --- Share Excuse ---

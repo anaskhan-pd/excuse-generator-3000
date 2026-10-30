@@ -85,9 +85,7 @@
           <span class="btn-text">Generate Alibi</span>
           <span class="btn-kbd">↵ Space/Enter</span>
         </button>
-        <button type="button" class="btn btn-secondary" id="btn-random">
-          <span class="btn-icon">🎲</span> Surprise Me
-        </button>
+        <button type="button" class="btn btn-secondary" id="btn-random">Surprise Me</button>
       </div>
 
       <!-- Output Display Card -->
@@ -100,7 +98,10 @@
           <div class="credibility-gauge" id="credibility-box" title="Fictional believability estimation">
             <div class="gauge-label">
               <span class="gauge-title">FICTIONAL CREDIBILITY</span>
-              <span class="gauge-percent" id="credibility-score">74%</span>
+              <div class="gauge-score-wrap">
+                <span class="credibility-dot" id="credibility-dot" aria-hidden="true"></span>
+                <span class="gauge-percent" id="credibility-score">74%</span>
+              </div>
             </div>
             <div class="gauge-track">
               <div class="gauge-bar" id="credibility-bar" style="width: 74%;"></div>
@@ -117,15 +118,13 @@
 
         <div class="result-footer">
           <button type="button" class="btn btn-action" id="btn-copy">
-            <span id="copy-icon">📋</span>
             <span id="copy-label">Copy Excuse</span>
           </button>
           <button type="button" class="btn btn-action" id="btn-share" title="Share this excuse">
-            <span id="share-icon">↗</span>
             <span id="share-label">Share</span>
           </button>
           <button type="button" class="btn btn-worse" id="btn-worse" title="Escalate this premise into absurd consequences">
-            🔥 Make It Worse
+            Make It Worse
           </button>
         </div>
       </section>
