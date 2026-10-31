@@ -631,24 +631,36 @@
     "ALIBI SECURED. MAINTAIN A STRAIGHT FACE."
   ];
 
-  // --- Credibility Score Generator ---
+  // --- Credibility Score Generator (Score-Dependent Fictional Verdicts) ---
   const CREDIBILITY_VERDICTS = [
-    { max: 5, text: "HR has already drafted the severance package." },
-    { max: 15, text: "Statistically indistinguishable from outright perjury." },
-    { max: 28, text: "Even your dog is looking at you with suspicion." },
-    { max: 42, text: "Only works if delivered while sweating profusely." },
-    { max: 55, text: "Plausible if spoken with unbroken, unblinking eye contact." },
-    { max: 70, text: "Boring enough that nobody will dare ask follow-ups." },
-    { max: 85, text: "Dangerously solid. Sounds like an insurance policy clause." },
-    { max: 100, text: "Unchallengeable bureaucratic gaslighting. Masterful." }
+    { min: 0, max: 10, text: "HR has already drafted the severance package." },
+    { min: 11, max: 30, text: "Technically a statement. Legally a concern." },
+    { min: 31, max: 50, text: "Someone might believe this after two coffees." },
+    { min: 51, max: 70, text: "Surprisingly defensible under questionable circumstances." },
+    { min: 71, max: 90, text: "Your lawyer wants to hear more." },
+    { min: 91, max: 100, text: "Suspiciously believable. We recommend saying nothing further." }
   ];
 
   function getCredibilityVerdict(score) {
-    for (const verdict of CREDIBILITY_VERDICTS) {
-      if (score <= verdict.max) return verdict.text;
-    }
-    return CREDIBILITY_VERDICTS[CREDIBILITY_VERDICTS.length - 1].text;
+    const s = Math.round(Number(score));
+    if (s <= 10) return "HR has already drafted the severance package.";
+    if (s <= 30) return "Technically a statement. Legally a concern.";
+    if (s <= 50) return "Someone might believe this after two coffees.";
+    if (s <= 70) return "Surprisingly defensible under questionable circumstances.";
+    if (s <= 90) return "Your lawyer wants to hear more.";
+    return "Suspiciously believable. We recommend saying nothing further.";
   }
+
+  // --- Generate Button States ---
+  const BUTTON_LABELS = {
+    INITIAL: "GENERATE ALIBI",
+    ANOTHER: "TRY ANOTHER EXCUSE",
+    CONVINCED: "STILL NOT CONVINCED?",
+    WORSE: "YOU ASKED FOR THIS",
+    SURPRISE: "BLAME THE ALGORITHM"
+  };
+
+  const SEVERAL_GENERATIONS_THRESHOLD = 5;
 
   // --- State ---
   const state = {
@@ -660,6 +672,7 @@
     currentExcuseText: '',
     isEscalated: false,
     hasGeneratedOnce: false,
+    generationCount: 0,
     statusIndex: 0
   };
 
@@ -686,6 +699,9 @@
   const excuseTextEl = document.getElementById('excuse-text');
   const copyLabel = document.getElementById('copy-label');
   const toast = document.getElementById('toast');
+  const accountabilityTrigger = document.getElementById('accountability-trigger');
+  const accountabilityTooltip = document.getElementById('accountability-tooltip');
+  const footerInteractiveWrap = accountabilityTrigger ? accountabilityTrigger.parentElement : null;
 
   // --- Helper: Toast Notification ---
   let toastTimer = null;
@@ -754,90 +770,115 @@
   // --- Core Generation Logic ---
   function generateExcuse(options = {}) {
     const isWorse = options.isWorse || false;
+    const isInitial = options.isInitial || false;
+    const isSurprise = options.isSurprise || false;
     const situation = state.currentSituation;
     const personality = state.currentPersonality;
 
     let excuse = "";
     let score = 50;
 
-    if (isWorse) {
-      // "Make It Worse" builds on the EXISTING excuse premise!
-      state.isEscalated = true;
+    try {
+      if (isWorse) {
+        // "Make It Worse" builds on the EXISTING excuse premise!
+        state.isEscalated = true;
 
-      if (situation === 'custom') {
-        const rawText = customInput.value.trim();
-        const sanitized = rawText ? rawText.slice(0, 100) : "my questionable life choices";
-        const templates = CUSTOM_TEMPLATES[personality] || CUSTOM_TEMPLATES.corporate;
-        
-        if (state.currentExcuseObject && typeof state.currentExcuseObject.escalation === 'function') {
-          excuse = state.currentExcuseObject.escalation(sanitized);
+        if (situation === 'custom') {
+          const rawText = customInput.value.trim();
+          const sanitized = rawText ? rawText.slice(0, 100) : "my questionable life choices";
+          const templates = CUSTOM_TEMPLATES[personality] || CUSTOM_TEMPLATES.corporate;
+          
+          if (state.currentExcuseObject && typeof state.currentExcuseObject.escalation === 'function') {
+            excuse = state.currentExcuseObject.escalation(sanitized);
+          } else {
+            const idx = state.lastExcuseIndex >= 0 ? state.lastExcuseIndex : 0;
+            const t = templates[idx % templates.length];
+            excuse = t.escalation(sanitized);
+          }
         } else {
-          const idx = state.lastExcuseIndex >= 0 ? state.lastExcuseIndex : 0;
-          const t = templates[idx % templates.length];
-          excuse = t.escalation(sanitized);
+          // Standard situation: use the dedicated escalation for the current excuse premise
+          if (state.currentExcuseObject && state.currentExcuseObject.escalation) {
+            excuse = state.currentExcuseObject.escalation;
+          } else {
+            // Fallback if no prior object is set
+            const personaList = (EXCUSE_DB[situation] && EXCUSE_DB[situation][personality]) || EXCUSE_DB['skipped-gym']['corporate'];
+            const idx = state.lastExcuseIndex >= 0 ? state.lastExcuseIndex : 0;
+            const item = personaList[idx % personaList.length];
+            excuse = item.escalation || item.base;
+          }
         }
+
+        // Escalated alibis have drastically lower credibility
+        score = getRandomInt(1, 14);
+
       } else {
-        // Standard situation: use the dedicated escalation for the current excuse premise
-        if (state.currentExcuseObject && state.currentExcuseObject.escalation) {
-          excuse = state.currentExcuseObject.escalation;
+        // Normal generation: pick a new base excuse
+        state.isEscalated = false;
+
+        if (situation === 'custom') {
+          const rawText = customInput.value.trim();
+          const sanitized = rawText ? rawText.slice(0, 100) : "my questionable life choices";
+          const templates = CUSTOM_TEMPLATES[personality] || CUSTOM_TEMPLATES.corporate;
+          const index = getNonRepeatingIndex(templates.length, state.lastExcuseIndex);
+          state.lastExcuseIndex = index;
+          state.currentExcuseObject = templates[index];
+          excuse = templates[index].base(sanitized);
+
+          if (personality === 'corporate') score = getRandomInt(65, 94);
+          else if (personality === 'scientific') score = getRandomInt(45, 80);
+          else if (personality === 'bollywood') score = getRandomInt(10, 40);
+          else score = getRandomInt(5, 30);
+
         } else {
-          // Fallback if no prior object is set
-          const personaList = (EXCUSE_DB[situation] && EXCUSE_DB[situation][personality]) || EXCUSE_DB['skipped-gym']['corporate'];
-          const idx = state.lastExcuseIndex >= 0 ? state.lastExcuseIndex : 0;
-          const item = personaList[idx % personaList.length];
-          excuse = item.escalation || item.base;
+          const personaDict = EXCUSE_DB[situation] || EXCUSE_DB['skipped-gym'];
+          const excuseList = personaDict[personality] || personaDict['corporate'];
+          const index = getNonRepeatingIndex(excuseList.length, state.lastExcuseIndex);
+          state.lastExcuseIndex = index;
+          state.currentExcuseObject = excuseList[index];
+          excuse = excuseList[index].base;
+
+          if (personality === 'corporate') score = getRandomInt(60, 92);
+          else if (personality === 'scientific') score = getRandomInt(40, 75);
+          else if (personality === 'bollywood') score = getRandomInt(8, 35);
+          else score = getRandomInt(2, 28);
         }
       }
 
-      // Escalated alibis have drastically lower credibility
-      score = getRandomInt(1, 14);
-
-    } else {
-      // Normal generation: pick a new base excuse
-      state.isEscalated = false;
-
-      if (situation === 'custom') {
-        const rawText = customInput.value.trim();
-        const sanitized = rawText ? rawText.slice(0, 100) : "my questionable life choices";
-        const templates = CUSTOM_TEMPLATES[personality] || CUSTOM_TEMPLATES.corporate;
-        const index = getNonRepeatingIndex(templates.length, state.lastExcuseIndex);
-        state.lastExcuseIndex = index;
-        state.currentExcuseObject = templates[index];
-        excuse = templates[index].base(sanitized);
-
-        if (personality === 'corporate') score = getRandomInt(65, 94);
-        else if (personality === 'scientific') score = getRandomInt(45, 80);
-        else if (personality === 'bollywood') score = getRandomInt(10, 40);
-        else score = getRandomInt(5, 30);
-
-      } else {
-        const personaDict = EXCUSE_DB[situation] || EXCUSE_DB['skipped-gym'];
-        const excuseList = personaDict[personality] || personaDict['corporate'];
-        const index = getNonRepeatingIndex(excuseList.length, state.lastExcuseIndex);
-        state.lastExcuseIndex = index;
-        state.currentExcuseObject = excuseList[index];
-        excuse = excuseList[index].base;
-
-        if (personality === 'corporate') score = getRandomInt(60, 92);
-        else if (personality === 'scientific') score = getRandomInt(40, 75);
-        else if (personality === 'bollywood') score = getRandomInt(8, 35);
-        else score = getRandomInt(2, 28);
+      if (!excuse || typeof excuse !== 'string' || excuse.trim().length === 0) {
+        return false;
       }
+
+      state.currentExcuseText = excuse;
+
+      // Render result safely
+      renderExcuseResult(excuse, score, state.isEscalated);
+
+      // Handle generation counter and button label updates
+      if (!isInitial) {
+        state.generationCount++;
+        state.hasGeneratedOnce = true;
+
+        if (isWorse) {
+          updateGenerateButtonLabel(BUTTON_LABELS.WORSE);
+        } else if (isSurprise) {
+          updateGenerateButtonLabel(BUTTON_LABELS.SURPRISE);
+        } else {
+          if (state.generationCount >= SEVERAL_GENERATIONS_THRESHOLD) {
+            updateGenerateButtonLabel(BUTTON_LABELS.CONVINCED);
+          } else {
+            updateGenerateButtonLabel(BUTTON_LABELS.ANOTHER);
+          }
+        }
+
+        // Subtly cycle system status on new generations
+        cycleSystemStatus();
+      }
+
+      return true;
+    } catch (err) {
+      console.error("Excuse generation failed:", err);
+      return false;
     }
-
-    state.currentExcuseText = excuse;
-
-    // Render result safely
-    renderExcuseResult(excuse, score, state.isEscalated);
-
-    // Update Generate button label after the first generation
-    if (!state.hasGeneratedOnce) {
-      state.hasGeneratedOnce = true;
-      updateGenerateButtonLabel("Try Another Excuse");
-    }
-
-    // Subtly cycle system status on new generations
-    cycleSystemStatus();
   }
 
   function updateGenerateButtonLabel(text) {
@@ -1004,9 +1045,89 @@
     selectSituation(randomSit);
     selectPersonality(randomPer);
 
-    generateExcuse({ isWorse: false });
+    generateExcuse({ isWorse: false, isSurprise: true });
     showToast("RANDOM CRISIS AND COUNSEL ENGAGED.");
   }
+
+  // --- Footer Tooltip Interaction ---
+  function showTooltip() {
+    if (!accountabilityTooltip || !accountabilityTrigger) return;
+    accountabilityTooltip.hidden = false;
+    accountabilityTrigger.setAttribute('aria-expanded', 'true');
+    adjustTooltipPosition();
+  }
+
+  function hideTooltip() {
+    if (!accountabilityTooltip || !accountabilityTrigger) return;
+    if (accountabilityTooltip.hidden) return;
+    accountabilityTooltip.hidden = true;
+    accountabilityTooltip.style.left = '';
+    accountabilityTooltip.style.transform = '';
+    accountabilityTrigger.setAttribute('aria-expanded', 'false');
+  }
+
+  function toggleTooltip() {
+    if (!accountabilityTooltip) return;
+    if (accountabilityTooltip.hidden) {
+      showTooltip();
+    } else {
+      hideTooltip();
+    }
+  }
+
+  function adjustTooltipPosition() {
+    if (!accountabilityTooltip || accountabilityTooltip.hidden) return;
+    accountabilityTooltip.style.left = '50%';
+    accountabilityTooltip.style.transform = 'translateX(-50%)';
+
+    const rect = accountabilityTooltip.getBoundingClientRect();
+    const margin = 10;
+    const viewportWidth = window.innerWidth;
+
+    if (rect.left < margin) {
+      const shift = margin - rect.left;
+      accountabilityTooltip.style.transform = `translateX(calc(-50% + ${shift}px))`;
+    } else if (rect.right > viewportWidth - margin) {
+      const shift = rect.right - (viewportWidth - margin);
+      accountabilityTooltip.style.transform = `translateX(calc(-50% - ${shift}px))`;
+    }
+  }
+
+  if (accountabilityTrigger) {
+    accountabilityTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleTooltip();
+    });
+
+    accountabilityTrigger.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleTooltip();
+      }
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (footerInteractiveWrap && !footerInteractiveWrap.contains(e.target)) {
+      hideTooltip();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && accountabilityTooltip && !accountabilityTooltip.hidden) {
+      hideTooltip();
+      if (accountabilityTrigger) {
+        accountabilityTrigger.focus();
+      }
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    if (accountabilityTooltip && !accountabilityTooltip.hidden) {
+      adjustTooltipPosition();
+    }
+  });
 
   // --- Event Listeners ---
 
@@ -1063,6 +1184,6 @@
   // Initial Run
   selectSituation('skipped-gym');
   selectPersonality('corporate');
-  generateExcuse({ isWorse: false });
+  generateExcuse({ isWorse: false, isInitial: true });
 
 })();

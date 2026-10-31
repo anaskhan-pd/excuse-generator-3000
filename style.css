@@ -344,6 +344,7 @@ body {
 
 .btn-primary {
   flex: 2;
+  min-width: 320px;
   background-color: var(--accent-primary);
   color: var(--text-inverse);
   border: 2px solid #000;
@@ -352,6 +353,13 @@ body {
   box-shadow: var(--shadow-brutal);
   text-transform: uppercase;
   letter-spacing: 0.02em;
+}
+
+.btn-text {
+  display: inline-block;
+  min-width: 200px;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .btn-primary:hover {
@@ -513,9 +521,10 @@ body {
   font-family: var(--font-mono);
   font-size: 0.66rem;
   color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.35;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 /* Result Body - Emphasized Excuse */
@@ -628,11 +637,95 @@ body {
 
 /* Footer */
 .footer {
+  position: relative;
   text-align: center;
   font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--text-muted);
   padding-bottom: 0.5rem;
+}
+
+.footer-interactive-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.footer-trigger {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), text-decoration-color var(--transition-fast);
+}
+
+.footer-trigger:hover {
+  color: var(--text-main);
+  text-decoration: underline dotted var(--text-muted);
+  text-underline-offset: 3px;
+}
+
+.footer-trigger:focus-visible {
+  outline: 1px dashed var(--accent-primary);
+  outline-offset: 3px;
+  color: var(--text-main);
+}
+
+.footer-tooltip {
+  position: absolute;
+  bottom: calc(100% + 9px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--surface-color);
+  color: var(--text-main);
+  border: 1px solid var(--accent-primary);
+  box-shadow: var(--shadow-brutal-sm);
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.4;
+  white-space: normal;
+  text-align: center;
+  width: max-content;
+  max-width: min(300px, calc(100vw - 2rem));
+  z-index: 100;
+  pointer-events: auto;
+  animation: tooltipFadeIn 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.footer-tooltip[hidden] {
+  display: none;
+}
+
+.footer-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--accent-primary) transparent transparent transparent;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 4px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 /* Screen reader utility */
@@ -688,8 +781,23 @@ body {
     width: 100%;
   }
 
-  .btn-primary, .btn-secondary {
+  .btn-primary {
     width: 100%;
+    min-width: unset;
+  }
+
+  .btn-secondary {
+    width: 100%;
+  }
+
+  .btn-text {
+    min-width: 0;
+    width: auto;
+    text-align: center;
+  }
+
+  .btn-kbd {
+    display: none;
   }
 
   .result-container {
@@ -742,6 +850,17 @@ body {
 
   .title {
     font-size: 1.55rem;
+  }
+
+  .btn-primary {
+    font-size: 0.9rem;
+    padding: 0.75rem 0.5rem;
+  }
+
+  .footer-tooltip {
+    max-width: calc(100vw - 1.5rem);
+    font-size: 0.64rem;
+    padding: 0.4rem 0.6rem;
   }
 }
 
